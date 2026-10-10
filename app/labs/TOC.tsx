@@ -15,6 +15,9 @@ export default function TOC() {
           <Link href="/labs/lab2">Lab 2</Link>
         </li>
         <li>
+          <Link href="/labs/lab2/tailwind">Tailwind CSS</Link>
+        </li>
+        <li>
           <Link href="/labs/lab3">Lab 3</Link>
         </li>
         <li>
