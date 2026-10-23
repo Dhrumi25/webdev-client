@@ -1,11 +1,13 @@
 import Link from "next/link";
+import * as db from "../../../../database";
 
 export default async function AssignmentEditor({
   params,
 }: {
   params: Promise<{ cid: string; aid: string }>;
 }) {
-  const { cid } = await params;
+  const { cid, aid } = await params;
+  const assignment = db.assignments.find((a) => a._id === aid);
 
   return (
     <div id="wd-assignments-editor">
@@ -16,10 +18,12 @@ export default async function AssignmentEditor({
         </label>
         <input
           id="wd-name"
-          defaultValue="A1 - ENV + HTML"
+          defaultValue={assignment?.title ?? ""}
           className="w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
+
+      <p>Assignment id: {aid}</p>
 
       <div className="mb-6">
         <label htmlFor="wd-description" className="block mb-2 font-medium">
@@ -28,7 +32,7 @@ export default async function AssignmentEditor({
         <textarea
           id="wd-description"
           rows={5}
-          defaultValue="The assignment is available online. Submit a link to the landing page of your Web application running on Vercel."
+          defaultValue={assignment?.description ?? ""}
           className="w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
@@ -39,7 +43,7 @@ export default async function AssignmentEditor({
         </label>
         <input
           id="wd-points"
-          defaultValue={100}
+          defaultValue={assignment?.points ?? 100}
           className="w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
@@ -126,6 +130,7 @@ export default async function AssignmentEditor({
         <input
           type="date"
           id="wd-due-date"
+          defaultValue={assignment?.due}
           className="w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
@@ -137,6 +142,7 @@ export default async function AssignmentEditor({
         <input
           type="date"
           id="wd-available-from"
+          defaultValue={assignment?.available}
           className="w-full border border-gray-300 rounded px-3 py-2"
         />
       </div>
