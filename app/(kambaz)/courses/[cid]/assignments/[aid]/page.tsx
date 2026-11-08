@@ -1,30 +1,55 @@
-import Link from "next/link";
-import * as db from "../../../../database";
+"use client";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  useAssignmentsStore,
+  emptyAssignment,
+  type Assignment,
+} from "../../../../store/assignmentsStore";
 
-export default async function AssignmentEditor({
-  params,
-}: {
-  params: Promise<{ cid: string; aid: string }>;
-}) {
-  const { cid, aid } = await params;
-  const assignment = db.assignments.find((a) => a._id === aid);
+export default function AssignmentEditor() {
+  const { cid, aid } = useParams();
+  const router = useRouter();
+  const assignments = useAssignmentsStore((state) => state.assignments);
+  const addAssignment = useAssignmentsStore((state) => state.addAssignment);
+  const updateAssignment = useAssignmentsStore((state) => state.updateAssignment);
+  const isNew = aid === "new";
+  const existing = assignments.find((a) => a._id === aid);
+
+  const [assignment, setAssignment] = useState<Assignment>(
+    existing ?? { ...emptyAssignment, course: String(cid) },
+  );
+
+  useEffect(() => {
+    if (existing) setAssignment(existing);
+  }, [existing]);
+
+  const save = () => {
+    if (isNew) {
+      addAssignment({ ...assignment, course: String(cid) });
+    } else {
+      updateAssignment(assignment);
+    }
+    router.push(`/courses/${cid}/assignments`);
+  };
+
+  const cancel = () => {
+    router.push(`/courses/${cid}/assignments`);
+  };
 
   return (
     <div id="wd-assignments-editor">
-
       <div className="mb-6">
         <label htmlFor="wd-name" className="block mb-2 font-medium">
           Assignment Name
         </label>
         <input
           id="wd-name"
-          defaultValue={assignment?.title ?? ""}
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.title}
+          onChange={(e) => setAssignment({ ...assignment, title: e.target.value })}
         />
       </div>
-
-      <p>Assignment id: {aid}</p>
-
       <div className="mb-6">
         <label htmlFor="wd-description" className="block mb-2 font-medium">
           Description
@@ -32,97 +57,27 @@ export default async function AssignmentEditor({
         <textarea
           id="wd-description"
           rows={5}
-          defaultValue={assignment?.description ?? ""}
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.description}
+          onChange={(e) =>
+            setAssignment({ ...assignment, description: e.target.value })
+          }
         />
       </div>
-
       <div className="mb-6">
         <label htmlFor="wd-points" className="block mb-2 font-medium">
           Points
         </label>
         <input
           id="wd-points"
-          defaultValue={assignment?.points ?? 100}
+          type="number"
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.points}
+          onChange={(e) =>
+            setAssignment({ ...assignment, points: parseInt(e.target.value) || 0 })
+          }
         />
       </div>
-
-      <div className="mb-6">
-        <label htmlFor="wd-group" className="block mb-2 font-medium">
-          Assignment Group
-        </label>
-        <select
-          id="wd-group"
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        >
-          <option>ASSIGNMENTS</option>
-          <option>QUIZZES</option>
-          <option>EXAMS</option>
-          <option>PROJECT</option>
-        </select>
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="wd-display-grade-as" className="block mb-2 font-medium">
-          Display Grade as
-        </label>
-        <select
-          id="wd-display-grade-as"
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        >
-          <option>Percentage</option>
-          <option>Points</option>
-        </select>
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="wd-submission-type" className="block mb-2 font-medium">
-          Submission Type
-        </label>
-        <select
-          id="wd-submission-type"
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        >
-          <option>Online</option>
-        </select>
-      </div>
-
-      <div className="mb-6">
-        <div className="mb-3 font-medium">Online Entry Options</div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wd-text-entry" />
-          <label htmlFor="wd-text-entry">Text Entry</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wd-website-url" />
-          <label htmlFor="wd-website-url">Website URL</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wd-media-recordings" />
-          <label htmlFor="wd-media-recordings">Media Recordings</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wd-student-annotation" />
-          <label htmlFor="wd-student-annotation">Student Annotation</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wd-file-upload" />
-          <label htmlFor="wd-file-upload">File Upload</label>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="wd-assign-to" className="block mb-2 font-medium">
-          Assign To
-        </label>
-        <input
-          id="wd-assign-to"
-          defaultValue="Everyone"
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
       <div className="mb-6">
         <label htmlFor="wd-due-date" className="block mb-2 font-medium">
           Due
@@ -130,11 +85,11 @@ export default async function AssignmentEditor({
         <input
           type="date"
           id="wd-due-date"
-          defaultValue={assignment?.due}
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.due}
+          onChange={(e) => setAssignment({ ...assignment, due: e.target.value })}
         />
       </div>
-
       <div className="mb-6">
         <label htmlFor="wd-available-from" className="block mb-2 font-medium">
           Available From
@@ -142,50 +97,45 @@ export default async function AssignmentEditor({
         <input
           type="date"
           id="wd-available-from"
-          defaultValue={assignment?.available}
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.available}
+          onChange={(e) =>
+            setAssignment({ ...assignment, available: e.target.value })
+          }
         />
       </div>
-
       <div className="mb-6">
         <label htmlFor="wd-available-until" className="block mb-2 font-medium">
-          Until
+          Available Until
         </label>
         <input
           type="date"
           id="wd-available-until"
           className="w-full border border-gray-300 rounded px-3 py-2"
+          value={assignment.availableUntil ?? ""}
+          onChange={(e) =>
+            setAssignment({ ...assignment, availableUntil: e.target.value })
+          }
         />
       </div>
-
-      <div className="mb-6">
-        <label htmlFor="wd-ai-editor-notes" className="block mb-2 font-medium">
-          Sample notes
-        </label>
-        <textarea
-          id="wd-ai-editor-notes"
-          rows={3}
-          className="w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
       <div className="flex gap-3">
-        <Link
+        <button
+          type="button"
           id="wd-cancel"
-          href={`/courses/${cid}/assignments`}
+          onClick={cancel}
           className="border border-gray-300 rounded px-5 py-2 hover:bg-gray-100"
         >
           Cancel
-        </Link>
-        <Link
+        </button>
+        <button
+          type="button"
           id="wd-save"
-          href={`/courses/${cid}/assignments`}
+          onClick={save}
           className="bg-red-600 text-white rounded px-5 py-2 hover:bg-red-700"
         >
           Save
-        </Link>
+        </button>
       </div>
-
     </div>
   );
 }
